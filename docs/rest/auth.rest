@@ -1,0 +1,30 @@
+### Login
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan@mail.com",
+  "password": "juan54321"
+}
+
+### Ver Perfil
+GET http://localhost:8000/api/v1/auth/profile
+Authorization: Bearer 15|M2HtBfiSeAAOOYGs2xn18DWMCqXq0DaqeWGRXehDc6d78b7e
+
+### Salir
+
+POST http://localhost:8000/api/v1/auth/logout
+Authorization: Bearer 11|2gGFa2elklkj4RqCEvNup0KjH6yuc9ew5dDvo5mE9ee22293
+
+
+
+### Registro
+
+POST http://localhost:8000/api/v1/auth/register
+Content-Type: application/json
+
+{
+    "name": "juan",
+    "email": "juan@mail.com",
+    "password": "juan54321"
+}

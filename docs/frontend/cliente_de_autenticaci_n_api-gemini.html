@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Auth Client</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-100 text-lg leading-tight">Auth Testing Portal</h1>
+          <p class="text-xs text-slate-400">Cliente HTTP para API REST v1</p>
+        </div>
+      </div>
+
+      <!-- Configuración rápida de Base URL y Estado -->
+      <div class="flex items-center gap-3">
+        <button id="configToggleBtn" onclick="toggleConfigModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+          <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Base URL:</span>
+          <span id="baseUrlBadge" class="text-indigo-400 font-mono">http://localhost:8000/api/v1</span>
+        </button>
+
+        <!-- Indicador de Estado de Sesión -->
+        <div id="sessionBadge" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span>No Autenticado</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+
+    <!-- MODAL DE CONFIGURACIÓN DE BASE URL -->
+    <div id="configModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <h3 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i> Configurar Endpoint Base
+          </h3>
+          <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-200">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div>
+          <label for="baseUrlInput" class="block text-xs font-medium text-slate-400 mb-2">Base URL de la API</label>
+          <input type="url" id="baseUrlInput" value="http://localhost:8000/api/v1" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-indigo-300 focus:outline-none focus:border-indigo-500">
+        </div>
+        <p class="text-xs text-slate-500">Esta URL se antepondrá a los endpoints de la API (`/auth/login`, `/auth/profile`, `/auth/logout`).</p>
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="saveBaseUrl()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition">
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN CONTENEDORA PRINCIPAL (GRILLA RECEPTORA DE LOGGED / UNLOGGED) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+
+      <!-- COLUMNA IZQUIERDA: FORMULARIO O DASHBOARD -->
+      <div class="lg:col-span-5 flex flex-col gap-6">
+
+        <!-- VISTA DE LOGIN (Muestra cuando NO está logueado) -->
+        <div id="loginCard" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+          <div>
+            <div class="inline-flex items-center gap-2 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full text-xs font-medium mb-3">
+              <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Autenticación REST
+            </div>
+            <h2 class="text-xl font-bold text-slate-100">Iniciar Sesión</h2>
+            <p class="text-xs text-slate-400 mt-1">Ingresa las credenciales para obtener el Bearer Token de la API.</p>
+          </div>
+
+          <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+              <label for="email" class="block text-xs font-medium text-slate-300 mb-1.5">Correo Electrónico</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <i data-lucide="mail" class="w-4 h-4"></i>
+                </div>
+                <input type="email" id="email" required value="admin@mail.com" class="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="password" class="block text-xs font-medium text-slate-300 mb-1.5">Contraseña</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <i data-lucide="lock" class="w-4 h-4"></i>
+                </div>
+                <input type="password" id="password" required value="Admin.54321" class="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+              </div>
+            </div>
+
+            <button type="submit" id="btnLogin" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50">
+              <span id="btnLoginText">Iniciar Sesión</span>
+              <i id="btnLoginIcon" data-lucide="arrow-right" class="w-4 h-4"></i>
+              <svg id="btnLoginSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </form>
+
+          <div class="border-t border-slate-800/80 pt-4 text-xs text-slate-500">
+            <span class="font-medium text-slate-400">Petición generada:</span>
+            <code class="block mt-1 bg-slate-950 p-2 rounded-lg text-indigo-300 font-mono text-[11px] break-all">POST /api/v1/auth/login</code>
+          </div>
+        </div>
+
+        <!-- VISTA DE CONTROL DE USUARIO / DASHBOARD (Muestra cuando SI está logueado) -->
+        <div id="dashboardCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <div class="inline-flex items-center gap-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium mb-1">
+                <i data-lucide="check-circle-2" class="w-3 h-3"></i> Sesión Activa
+              </div>
+              <h2 class="text-xl font-bold text-slate-100">Panel de Control</h2>
+            </div>
+            <button onclick="handleLogout()" id="btnLogout" class="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
+
+          <!-- Token Info -->
+          <div class="space-y-2">
+            <label class="block text-xs font-medium text-slate-400">Bearer Token Actual</label>
+            <div class="flex items-center gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <input type="text" id="tokenDisplay" readonly class="bg-transparent text-xs text-indigo-300 font-mono flex-1 outline-none truncate" value="">
+              <button onclick="copyToken()" class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition" title="Copiar Token">
+                <i data-lucide="copy" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botones de Acción API -->
+          <div class="space-y-3 pt-2">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Acciones Disponibles</h3>
+            
+            <button onclick="fetchProfile()" id="btnProfile" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 font-medium text-sm rounded-xl transition flex items-center justify-between group">
+              <div class="flex items-center gap-2.5">
+                <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg group-hover:bg-indigo-500/20 transition">
+                  <i data-lucide="user" class="w-4 h-4"></i>
+                </div>
+                <div class="text-left">
+                  <p class="text-sm font-semibold text-slate-200">Ver Perfil</p>
+                  <p class="text-[11px] text-slate-400 font-mono">GET /auth/profile</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-0.5 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA: VISOR RESPONSIVO DE RESPUESTA HTTP -->
+      <div class="lg:col-span-7 flex flex-col h-full min-h-[450px]">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl flex flex-col flex-1 shadow-xl overflow-hidden">
+          
+          <!-- Header del Visor -->
+          <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+            <div class="flex items-center gap-2">
+              <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>
+              <h3 class="font-bold text-slate-200 text-sm">Respuesta HTTP</h3>
+            </div>
+            
+            <!-- Badges de Estado HTTP -->
+            <div id="responseStatus" class="hidden items-center gap-2 px-2.5 py-1 rounded-md text-xs font-mono font-semibold">
+              <span id="statusCode">200 OK</span>
+              <span id="responseTime" class="text-[10px] opacity-75">120ms</span>
+            </div>
+          </div>
+
+          <!-- Detalles de la Petición Realizada -->
+          <div id="requestDetails" class="hidden px-5 py-2.5 bg-slate-950/60 border-b border-slate-800 text-xs font-mono flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2 truncate">
+              <span id="reqMethod" class="px-2 py-0.5 rounded font-bold text-[10px] bg-indigo-500/20 text-indigo-300">POST</span>
+              <span id="reqUrl" class="text-slate-400 truncate">http://localhost:8000/api/v1/auth/login</span>
+            </div>
+            <button onclick="copyResponse()" class="text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1">
+              <i data-lucide="copy" class="w-3 h-3"></i> Copiar
+            </button>
+          </div>
+
+          <!-- Cuerpo de la Respuesta JSON -->
+          <div class="p-4 flex-1 bg-slate-950 flex flex-col relative overflow-hidden">
+            <!-- Loader Overlay -->
+            <div id="responseLoader" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-10">
+              <div class="flex flex-col items-center gap-3">
+                <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs text-slate-400 font-mono">Enviando Petición...</span>
+              </div>
+            </div>
+
+            <!-- Pre/Code Formateado -->
+            <pre id="jsonViewer" class="font-mono text-xs text-slate-300 overflow-auto flex-1 p-2 leading-relaxed selection:bg-indigo-900">
+<span class="text-slate-600">// Haz clic en Iniciar Sesión o Ver Perfil para ejecutar peticiones HTTP.</span>
+<span class="text-slate-600">// Las respuestas formateadas en JSON aparecerán en este panel.</span>
+            </pre>
+          </div>
+
+          <!-- Footer del Visor de Respuestas -->
+          <div class="px-4 py-2 border-t border-slate-800 bg-slate-900/30 text-[11px] text-slate-500 flex justify-between items-center">
+            <span>Formato: application/json</span>
+            <span id="responseSize">0 B</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    // --- ESTADO DE LA APLICACIÓN ---
+    const STATE = {
+      baseUrl: localStorage.getItem('api_base_url') || 'http://localhost:8000/api/v1',
+      token: localStorage.getItem('auth_token') || null,
+      lastResponse: null
+    };
+
+    // --- INICIALIZACIÓN ---
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateBaseUrlUI();
+      checkAuthStatus();
+    });
+
+    // --- MANEJO DE CONFIGURACIÓN ---
+    function toggleConfigModal() {
+      const modal = document.getElementById('configModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveBaseUrl() {
+      let url = document.getElementById('baseUrlInput').value.trim();
+      // Eliminar barra al final si existe
+      if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+      }
+      STATE.baseUrl = url;
+      localStorage.setItem('api_base_url', url);
+      updateBaseUrlUI();
+      toggleConfigModal();
+      showToast('Base URL actualizada correctamente', 'info');
+    }
+
+    function updateBaseUrlUI() {
+      document.getElementById('baseUrlBadge').innerText = STATE.baseUrl;
+      document.getElementById('baseUrlInput').value = STATE.baseUrl;
+    }
+
+    // --- GESTIÓN DE SESIÓN Y AUTENTICACIÓN ---
+    function checkAuthStatus() {
+      const loginCard = document.getElementById('loginCard');
+      const dashboardCard = document.getElementById('dashboardCard');
+      const sessionBadge = document.getElementById('sessionBadge');
+      const tokenDisplay = document.getElementById('tokenDisplay');
+
+      if (STATE.token) {
+        loginCard.classList.add('hidden');
+        dashboardCard.classList.remove('hidden');
+        tokenDisplay.value = STATE.token;
+
+        sessionBadge.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        sessionBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Autenticado</span>`;
+      } else {
+        loginCard.classList.remove('hidden');
+        dashboardCard.classList.add('hidden');
+
+        sessionBadge.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        sessionBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>No Autenticado</span>`;
+      }
+    }
+
+    // --- PETICIONES HTTP / CONSUMO DE API ---
+
+    // 1. LOGIN (POST)
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      setLoginLoading(true);
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch(`${STATE.baseUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const duration = Math.round(performance.now() - startTime);
+        const data = await response.json().catch(() => ({}));
+
+        renderResponse('POST', `${STATE.baseUrl}/auth/login`, response.status, response.statusText, data, duration);
+
+        if (response.ok) {
+          // Detectar token en varias estructuras comunes de respuesta
+          const token = data.token || data.access_token || (data.data && data.data.token);
+          if (token) {
+            STATE.token = token;
+            localStorage.setItem('auth_token', token);
+            checkAuthStatus();
+            showToast('Inicio de sesión exitoso', 'success');
+          } else {
+            showToast('Login exitoso pero no se encontró un Token en la respuesta', 'warning');
+          }
+        } else {
+          showToast(`Error ${response.status}: ${data.message || 'Credenciales inválidas'}`, 'error');
+        }
+      } catch (err) {
+        handleNetworkError('POST', `${STATE.baseUrl}/auth/login`, err);
+      } finally {
+        setLoginLoading(false);
+      }
+    }
+
+    // 2. OBTENER PERFIL (GET)
+    async function fetchProfile() {
+      if (!STATE.token) {
+        showToast('Debes estar autenticado para ver el perfil', 'error');
+        return;
+      }
+
+      showResponseLoader(true);
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch(`${STATE.baseUrl}/auth/profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${STATE.token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        const duration = Math.round(performance.now() - startTime);
+        const data = await response.json().catch(() => ({}));
+
+        renderResponse('GET', `${STATE.baseUrl}/auth/profile`, response.status, response.statusText, data, duration);
+
+        if (response.ok) {
+          showToast('Perfil cargado correctamente', 'success');
+        } else if (response.status === 401) {
+          showToast('Sesión expirada o token inválido', 'error');
+        } else {
+          showToast(`Error ${response.status}: Fallo al cargar perfil`, 'error');
+        }
+      } catch (err) {
+        handleNetworkError('GET', `${STATE.baseUrl}/auth/profile`, err);
+      } finally {
+        showResponseLoader(false);
+      }
+    }
+
+    // 3. LOGOUT (POST)
+    async function handleLogout() {
+      if (!STATE.token) return;
+
+      showResponseLoader(true);
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch(`${STATE.baseUrl}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${STATE.token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const duration = Math.round(performance.now() - startTime);
+        const data = await response.json().catch(() => ({ message: "Sesión cerrada correctamente" }));
+
+        renderResponse('POST', `${STATE.baseUrl}/auth/logout`, response.status, response.statusText, data, duration);
+
+        // Limpiar estado independientemente de si falló el backend para permitir la salida local
+        STATE.token = null;
+        localStorage.removeItem('auth_token');
+        checkAuthStatus();
+
+        if (response.ok) {
+          showToast('Sesión cerrada con éxito', 'success');
+        } else {
+          showToast('Sesión terminada localmente', 'warning');
+        }
+      } catch (err) {
+        // En caso de fallo de red al cerrar sesión, se remueve localmente
+        STATE.token = null;
+        localStorage.removeItem('auth_token');
+        checkAuthStatus();
+        handleNetworkError('POST', `${STATE.baseUrl}/auth/logout`, err);
+      } finally {
+        showResponseLoader(false);
+      }
+    }
+
+    // --- AUXILIARES Y RENDERIZADO DE RESPUESTA ---
+
+    function renderResponse(method, url, status, statusText, data, durationMs) {
+      STATE.lastResponse = JSON.stringify(data, null, 2);
+
+      // Mostrar barra de metadatos de request
+      const reqDetails = document.getElementById('requestDetails');
+      const reqMethod = document.getElementById('reqMethod');
+      const reqUrl = document.getElementById('reqUrl');
+      reqDetails.classList.remove('hidden');
+      reqMethod.innerText = method;
+      reqUrl.innerText = url;
+
+      // Status Badge
+      const statusContainer = document.getElementById('responseStatus');
+      const statusCodeEl = document.getElementById('statusCode');
+      const responseTimeEl = document.getElementById('responseTime');
+
+      statusContainer.classList.remove('hidden');
+      statusContainer.className = 'flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-mono font-semibold ';
+
+      if (status >= 200 && status < 300) {
+        statusContainer.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+      } else if (status >= 400 && status < 500) {
+        statusContainer.classList.add('bg-amber-500/10', 'text-amber-400', 'border', 'border-amber-500/20');
+      } else {
+        statusContainer.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+      }
+
+      statusCodeEl.innerText = `${status} ${statusText || ''}`;
+      responseTimeEl.innerText = `${durationMs}ms`;
+
+      // Tamaño de la respuesta
+      const bytes = new Blob([STATE.lastResponse]).size;
+      document.getElementById('responseSize').innerText = bytes > 1024 ? `${(bytes / 1024).toFixed(2)} KB` : `${bytes} B`;
+
+      // Formatear JSON con resaltado
+      const jsonViewer = document.getElementById('jsonViewer');
+      jsonViewer.innerHTML = syntaxHighlight(data);
+    }
+
+    function handleNetworkError(method, url, error) {
+      renderResponse(method, url, 0, 'NET_ERROR', {
+        error: 'Network Error / CORS Issue',
+        message: 'No se pudo establecer conexión con el servidor backend.',
+        details: 'Asegúrate de que el servidor esté corriendo en localhost:8000 y tenga CORS habilitado.',
+        technical_reason: error.message
+      }, 0);
+      showToast('Error de red o CORS al conectar con el backend', 'error');
+    }
+
+    function syntaxHighlight(json) {
+      if (typeof json !== 'string') {
+        json = JSON.stringify(json, null, 2);
+      }
+      if (!json) return '';
+
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        let cls = 'text-amber-300'; // number
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'text-indigo-400 font-semibold'; // key
+          } else {
+            cls = 'text-emerald-300'; // string
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'text-purple-400'; // boolean
+        } else if (/null/.test(match)) {
+          cls = 'text-red-400'; // null
+        }
+        return `<span class="${cls}">${match}</span>`;
+      });
+    }
+
+    function setLoginLoading(isLoading) {
+      const btn = document.getElementById('btnLogin');
+      const btnText = document.getElementById('btnLoginText');
+      const btnIcon = document.getElementById('btnLoginIcon');
+      const btnSpinner = document.getElementById('btnLoginSpinner');
+
+      btn.disabled = isLoading;
+      if (isLoading) {
+        btnText.innerText = 'Autenticando...';
+        btnIcon.classList.add('hidden');
+        btnSpinner.classList.remove('hidden');
+        showResponseLoader(true);
+      } else {
+        btnText.innerText = 'Iniciar Sesión';
+        btnIcon.classList.remove('hidden');
+        btnSpinner.classList.add('hidden');
+        showResponseLoader(false);
+      }
+    }
+
+    function showResponseLoader(show) {
+      const loader = document.getElementById('responseLoader');
+      if (show) loader.classList.remove('hidden');
+      else loader.classList.add('hidden');
+    }
+
+    function copyToken() {
+      if (STATE.token) {
+        document.execCommand('copy');
+        navigator.clipboard.writeText(STATE.token);
+        showToast('Token copiado al portapapeles', 'info');
+      }
+    }
+
+    function copyResponse() {
+      if (STATE.lastResponse) {
+        navigator.clipboard.writeText(STATE.lastResponse);
+        showToast('Respuesta JSON copiada', 'info');
+      }
+    }
+
+    // --- NOTIFICACIONES TOAST ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+
+      const bgColors = {
+        success: 'bg-emerald-950/90 border-emerald-500/30 text-emerald-200',
+        error: 'bg-red-950/90 border-red-500/30 text-red-200',
+        warning: 'bg-amber-950/90 border-amber-500/30 text-amber-200',
+        info: 'bg-slate-900/90 border-slate-700 text-slate-200'
+      };
+
+      const icons = {
+        success: 'check-circle-2',
+        error: 'alert-circle',
+        warning: 'alert-triangle',
+        info: 'info'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border backdrop-blur-md shadow-2xl text-xs font-medium transition-all duration-300 transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
+      toast.innerHTML = `
+        <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      // Animación de entrada
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      // Salida automática
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
