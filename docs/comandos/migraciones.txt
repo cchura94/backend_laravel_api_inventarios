@@ -1,0 +1,25 @@
+php artisan make:model Role
+php artisan make:model Permission
+
+php artisan make:migration create_role_user_table
+php artisan make:migration create_permission_role_table
+-----------------------------
+
+php artisan make:model Categoria -m
+php artisan make:model Producto -m
+php artisan make:model Sucursal -m
+php artisan make:model Almacen -m
+
+php artisan make:migration create_almacen_producto_table
+
+php artisan make:model Proveedor -m
+php artisan make:model Compra -m
+
+php artisan make:migration create_detalle_compra_table
+
+php artisan make:model Cliente -m
+php artisan make:model Venta -m
+
+php artisan make:migration create_detalle_venta_table
+
+php artisan make:migration create_sucursal_user_table
