@@ -1,0 +1,27 @@
+GET http://127.0.0.1:8000/api/categoria
+
+###
+POST http://127.0.0.1:8000/api/categoria
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "ELECTRONICOS",
+    "descripcion": "Para equipos de computación"
+}
+### mostrar
+GET http://127.0.0.1:8000/api/categoria/3
+
+### modificar
+ö
+PUT http://127.0.0.1:8000/api/categoria/2
+Content-Type: application/json
+Accept: application/json
+
+{    
+    "nombre": "MUEBLES PARA EL HOGAR",
+    "descripcion": "Muebles de madera para el hogar"
+}
+
+### Eliminar 
+DELETE http://127.0.0.1:8000/api/categoria/3
