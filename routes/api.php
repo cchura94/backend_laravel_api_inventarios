@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,7 +31,9 @@ Route::prefix('/v1/auth')->group(function () {
 // php artisan make:controller CategoriaController --api
 // CRUD Categorias (apiResource: GET, POST, GET, PUT, DELETE)
 Route::apiResource("/categoria", CategoriaController::class);
-
+// php artisan make:controller UserController --api
+// CRUD usuarios (QueryBuilder)
+Route::apiResource("/usuario", UserController::class);
 
 
 Route::get('no-autorizado', function(){
