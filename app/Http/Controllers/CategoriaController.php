@@ -24,7 +24,7 @@ class CategoriaController extends Controller
     {
         $nombre = $request->nombre;
         $descripcion = $request->descripcion;
-        DB::insert("insert into categorias(nombre, descripcion) values ('$nombre', '$descripcion')");
+        DB::insert("insert into categorias(nombre, descripcion) values (?, ?)", [$nombre, $descripcion]);
 
         return response()->json(["message" => "Categoria registrada en la BD"]);
     }

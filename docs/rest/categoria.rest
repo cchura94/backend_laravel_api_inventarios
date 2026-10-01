@@ -6,8 +6,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "nombre": "ELECTRONICOS",
-    "descripcion": "Para equipos de computación"
+    "nombre": "JUGUETES",
+    "descripcion": "Para niños"
 }
 ### mostrar
 GET http://127.0.0.1:8000/api/categoria/3
