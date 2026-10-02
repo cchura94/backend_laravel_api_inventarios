@@ -6,5 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sucursal extends Model
 {
-    //
+    public function almacenes(){
+        return $this->hasMany(Almacen::class);
+    }
+
+    public function users(){
+        return $this->belongsToMany(User::class)
+                    ->withPivot(["role_id"])
+                    ->withTimestamps();
+    }
 }

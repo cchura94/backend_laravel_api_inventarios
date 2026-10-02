@@ -30,4 +30,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function sucursales(){
+        return $this->belongsToMany(Sucursal::class)
+                    ->withPivot(["role_id"])
+                    ->withTimestamps();
+    }
+
+    public function roles(){
+        return $this->belongsToMany(Role::class)->withTimestamps();
+    }
 }

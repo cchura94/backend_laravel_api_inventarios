@@ -1,0 +1,19 @@
+GET http://127.0.0.1:8000/api/producto
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Zapatos",
+    "descripcion": "Zapatos de cuero",
+    "codigo_barra": "123456",
+    "unidad_medida": "Unidad",
+    "marca": "ABC",
+    "categoria_id": 2,
+    "precio_venta_actual": 259,
+    "stock_minimo": 3,
+    "fecha_registro": "",
+    "estado": true
+}
