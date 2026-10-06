@@ -31,6 +31,9 @@ Route::prefix('/v1/auth')->group(function () {
 
 
 Route::middleware(['auth:sanctum'])->group(function(){
+
+    // subida de imagenes
+    Route::post("/producto/{id}/subir-imagen", [ProductoController::class, "actualizarImagen"]);
  
     // php artisan make:controller CategoriaController --api
     // CRUD Categorias (apiResource: GET, POST, GET, PUT, DELETE)

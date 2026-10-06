@@ -1,19 +1,307 @@
-GET http://127.0.0.1:8000/api/producto
+GET http://127.0.0.1:8000/api/producto?page=1&limit=3&search=am
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
 
 ### Guardar
 POST http://127.0.0.1:8000/api/producto
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
 
 {
-    "nombre": "Zapatos",
-    "descripcion": "Zapatos de cuero",
-    "codigo_barra": "123456",
+    "nombre": "Camisa",
+    "descripcion": "Camisa de Tela",
+    "codigo_barra": "87652",
     "unidad_medida": "Unidad",
     "marca": "ABC",
     "categoria_id": 2,
-    "precio_venta_actual": 259,
+    "precio_venta_actual": 59,
     "stock_minimo": 3,
+    "fecha_registro": "",
+    "estado": true
+}
+
+###
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Camisa Casual",
+    "descripcion": "Camisa de algodon para uso diario",
+    "codigo_barra": "100001",
+    "unidad_medida": "Unidad",
+    "marca": "UrbanStyle",
+    "categoria_id": 1,
+    "precio_venta_actual": 59,
+    "stock_minimo": 3,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Pantalon Jean",
+    "descripcion": "Pantalon de mezclilla color azul",
+    "codigo_barra": "100002",
+    "unidad_medida": "Unidad",
+    "marca": "DenimPro",
+    "categoria_id": 1,
+    "precio_venta_actual": 120,
+    "stock_minimo": 5,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Chaqueta Deportiva",
+    "descripcion": "Chaqueta ligera para actividades deportivas",
+    "codigo_barra": "100003",
+    "unidad_medida": "Unidad",
+    "marca": "SportMax",
+    "categoria_id": 1,
+    "precio_venta_actual": 180,
+    "stock_minimo": 3,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Polera Basica",
+    "descripcion": "Polera de algodon de manga corta",
+    "codigo_barra": "100004",
+    "unidad_medida": "Unidad",
+    "marca": "CottonWear",
+    "categoria_id": 1,
+    "precio_venta_actual": 45,
+    "stock_minimo": 5,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Vestido Casual",
+    "descripcion": "Vestido ligero para uso casual",
+    "codigo_barra": "100005",
+    "unidad_medida": "Unidad",
+    "marca": "FashionLook",
+    "categoria_id": 1,
+    "precio_venta_actual": 150,
+    "stock_minimo": 2,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Mesa de Comedor",
+    "descripcion": "Mesa de madera para seis personas",
+    "codigo_barra": "200001",
+    "unidad_medida": "Unidad",
+    "marca": "MaderArte",
+    "categoria_id": 2,
+    "precio_venta_actual": 850,
+    "stock_minimo": 2,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Silla de Madera",
+    "descripcion": "Silla de madera para comedor",
+    "codigo_barra": "200002",
+    "unidad_medida": "Unidad",
+    "marca": "MaderArte",
+    "categoria_id": 2,
+    "precio_venta_actual": 220,
+    "stock_minimo": 4,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Sofa de Tres Plazas",
+    "descripcion": "Sofa acolchado de tres plazas para sala",
+    "codigo_barra": "200003",
+    "unidad_medida": "Unidad",
+    "marca": "HogarPlus",
+    "categoria_id": 2,
+    "precio_venta_actual": 1850,
+    "stock_minimo": 1,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Mesa de Centro",
+    "descripcion": "Mesa de centro de madera para sala",
+    "codigo_barra": "200004",
+    "unidad_medida": "Unidad",
+    "marca": "CasaMadera",
+    "categoria_id": 2,
+    "precio_venta_actual": 450,
+    "stock_minimo": 2,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Estante de Madera",
+    "descripcion": "Estante de cuatro niveles para almacenamiento",
+    "codigo_barra": "200005",
+    "unidad_medida": "Unidad",
+    "marca": "HogarPlus",
+    "categoria_id": 2,
+    "precio_venta_actual": 620,
+    "stock_minimo": 2,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Auto de Juguete",
+    "descripcion": "Auto de juguete de plastico para ninos",
+    "codigo_barra": "400001",
+    "unidad_medida": "Unidad",
+    "marca": "ToyKids",
+    "categoria_id": 4,
+    "precio_venta_actual": 35,
+    "stock_minimo": 5,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Muneca Infantil",
+    "descripcion": "Muneca de plastico con accesorios",
+    "codigo_barra": "400002",
+    "unidad_medida": "Unidad",
+    "marca": "FunToy",
+    "categoria_id": 4,
+    "precio_venta_actual": 75,
+    "stock_minimo": 4,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Rompecabezas 100 Piezas",
+    "descripcion": "Rompecabezas educativo para ninos",
+    "codigo_barra": "400003",
+    "unidad_medida": "Unidad",
+    "marca": "EduKids",
+    "categoria_id": 4,
+    "precio_venta_actual": 50,
+    "stock_minimo": 5,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Juego de Bloques",
+    "descripcion": "Juego de construccion con bloques de colores",
+    "codigo_barra": "400004",
+    "unidad_medida": "Unidad",
+    "marca": "BuildToy",
+    "categoria_id": 4,
+    "precio_venta_actual": 95,
+    "stock_minimo": 3,
+    "fecha_registro": "",
+    "estado": true
+}
+
+### Guardar
+POST http://127.0.0.1:8000/api/producto
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
+
+{
+    "nombre": "Pelota Infantil",
+    "descripcion": "Pelota de goma de colores para ninos",
+    "codigo_barra": "400005",
+    "unidad_medida": "Unidad",
+    "marca": "PlayKids",
+    "categoria_id": 4,
+    "precio_venta_actual": 30,
+    "stock_minimo": 6,
     "fecha_registro": "",
     "estado": true
 }

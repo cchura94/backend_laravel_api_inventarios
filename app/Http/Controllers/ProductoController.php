@@ -10,9 +10,16 @@ class ProductoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $productos= Producto::get();
+        $limite = $request->limit;
+        $buscar = $request->search;
+
+        $productos= Producto::where("nombre", "iLIKE", "%$buscar%")
+                                ->orWhere("codigo_barra", "iLike", "%$buscar%")
+                                ->orderBy('id', 'DESC')
+                                ->paginate($limite);
+
         return response($productos);
     }
 
@@ -36,6 +43,8 @@ class ProductoController extends Controller
             "fecha_registro" => "nullable"
         ]);
 
+        
+
 
         // guardar
         $prod = new Producto();
@@ -50,10 +59,41 @@ class ProductoController extends Controller
         // $prod->imagen = $request->imagen;
         $prod->estado = $request->estado;
         $prod->fecha_registro = $request->fecha_registro;
+
+
+        if($file = $request->file("imagen")){
+            $direccion_url = time()."-".$file->getClientOriginalName();
+            $file->move("imagenes", $direccion_url);
+
+            $prod->imagen = "imagenes/".$direccion_url;
+
+        }
+
+
         $prod->save();
 
         // responder
         return response()->json(["mensaje" => "Producto registrado"]);
+    }
+
+    public function actualizarImagen(Request $request, $id){
+
+        $request->validate(
+            [
+                "imagen" => "required|image|mimes:jpeg,png,jpg,gif|max:2048"
+            ]
+        );
+
+        if($file = $request->file("imagen")){
+            $direccion_url = time()."-".$file->getClientOriginalName();
+            $file->move("imagenes", $direccion_url);
+
+            $producto = Producto::find($id);
+            $producto->imagen = "imagenes/".$direccion_url;
+            $producto->update();
+
+            return response()->json($producto);
+        }
     }
 
     /**
