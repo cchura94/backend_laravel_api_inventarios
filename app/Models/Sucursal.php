@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sucursal extends Model
 {
+    protected $fillable = ["nombre", "direccion", "telefono", "ciudad"];
+
     public function almacenes(){
         return $this->hasMany(Almacen::class);
     }

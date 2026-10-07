@@ -1,0 +1,89 @@
+@token = 3|ovhl0QembKyTdgUFtxZeXciXnCbfzb3GqSEC7yQ8caa89425
+
+### listar
+GET http://127.0.0.1:8000/api/sucursal
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### listar con paginacion y busqueda
+GET http://127.0.0.1:8000/api/sucursal?limit=5&search=la paz
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### crear
+POST http://127.0.0.1:8000/api/sucursal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Sucursal Central",
+    "direccion": "Av. 16 de Julio #1234",
+    "telefono": "2201234",
+    "ciudad": "La Paz"
+}
+
+### crear sin telefono (opcional)
+POST http://127.0.0.1:8000/api/sucursal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Sucursal Sur",
+    "direccion": "Calle 21 de Calacoto #45",
+    "ciudad": "La Paz"
+}
+
+### crear con datos invalidos (espera 422)
+POST http://127.0.0.1:8000/api/sucursal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "",
+    "telefono": "123456789012345678901234567890"
+}
+
+### mostrar
+GET http://127.0.0.1:8000/api/sucursal/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### mostrar inexistente (espera 404)
+GET http://127.0.0.1:8000/api/sucursal/9999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### modificar
+PUT http://127.0.0.1:8000/api/sucursal/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Sucursal Central Actualizada",
+    "direccion": "Av. Camacho #567",
+    "telefono": "2205678",
+    "ciudad": "La Paz"
+}
+
+### modificar con datos invalidos (espera 422)
+PUT http://127.0.0.1:8000/api/sucursal/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Solo nombre"
+}
+
+### eliminar
+DELETE http://127.0.0.1:8000/api/sucursal/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sin token (espera 401)
+GET http://127.0.0.1:8000/api/sucursal
+Accept: application/json

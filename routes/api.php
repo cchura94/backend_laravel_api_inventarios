@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // CRUD usuarios (QueryBuilder)
     Route::apiResource("/usuario", UserController::class);
     Route::apiResource("/producto", ProductoController::class);
+    // CRUD sucursales (Eloquent)
+    Route::apiResource("/sucursal", SucursalController::class);
 
 
 });
