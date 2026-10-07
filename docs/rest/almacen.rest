@@ -1,0 +1,88 @@
+@token = 3|ovhl0QembKyTdgUFtxZeXciXnCbfzb3GqSEC7yQ8caa89425
+
+### listar
+GET http://127.0.0.1:8000/api/almacen
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### listar con paginacion, busqueda y filtro por sucursal
+GET http://127.0.0.1:8000/api/almacen?limit=5&search=central&sucursal_id=1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### crear
+POST http://127.0.0.1:8000/api/almacen
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Almacen Principal",
+    "codigo": "ALM-001",
+    "descripcion": "Almacen principal de la sucursal central",
+    "sucursal_id": 1
+}
+
+### crear solo con campos obligatorios
+POST http://127.0.0.1:8000/api/almacen
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Almacen Secundario",
+    "sucursal_id": 1
+}
+
+### crear con datos invalidos (espera 422)
+POST http://127.0.0.1:8000/api/almacen
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "",
+    "sucursal_id": 9999
+}
+
+### mostrar
+GET http://127.0.0.1:8000/api/almacen/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### mostrar inexistente (espera 404)
+GET http://127.0.0.1:8000/api/almacen/9999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### modificar
+PUT http://127.0.0.1:8000/api/almacen/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Almacen Principal Actualizado",
+    "codigo": "ALM-001-B",
+    "descripcion": "Descripcion actualizada",
+    "sucursal_id": 1
+}
+
+### modificar con datos invalidos (espera 422)
+PUT http://127.0.0.1:8000/api/almacen/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Solo nombre"
+}
+
+### eliminar
+DELETE http://127.0.0.1:8000/api/almacen/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sin token (espera 401)
+GET http://127.0.0.1:8000/api/almacen
+Accept: application/json

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Almacen extends Model
 {
+    protected $fillable = ["nombre", "codigo", "descripcion", "sucursal_id"];
+
     public function productos(){
         return $this->belongsToMany(Producto::class)
                 ->withPivot(["cantidad_actual", "fecha_actualizacion"])

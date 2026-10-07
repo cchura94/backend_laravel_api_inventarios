@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProductoController;
@@ -45,6 +46,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource("/producto", ProductoController::class);
     // CRUD sucursales (Eloquent)
     Route::apiResource("/sucursal", SucursalController::class);
+    // CRUD almacenes (Eloquent)
+    Route::apiResource("/almacen", AlmacenController::class);
 
 
 });
