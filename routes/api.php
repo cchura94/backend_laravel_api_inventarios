@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -51,6 +52,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource("/almacen", AlmacenController::class);
     // CRUD clientes (Eloquent)
     Route::apiResource("/cliente", ClienteController::class);
+    // CRUD proveedores (Eloquent)
+    Route::apiResource("/proveedor", ProveedorController::class);
 
 
 });

@@ -1,0 +1,93 @@
+@token = 4|l7ZuqPGEt5bC0o8uVG6ohoBZDaP8NzCuS94WyVhS5b9be79c
+
+### listar
+GET http://127.0.0.1:8000/api/proveedor
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### listar con paginacion y busqueda
+GET http://127.0.0.1:8000/api/proveedor?limit=5&search=comercial
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### crear
+POST http://127.0.0.1:8000/api/proveedor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "razon_social": "Distribuidora Comercial S.A.",
+    "nro_identificacion": "1020304012",
+    "contacto": "Carlos Ramirez",
+    "telefono": "2234567",
+    "correo": "ventas@comercial.com",
+    "observaciones": "Proveedor principal de abarrotes",
+    "estado": true
+}
+
+### crear sin opcionales
+POST http://127.0.0.1:8000/api/proveedor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "razon_social": "Proveedor Importaciones Ltda."
+}
+
+### crear con datos invalidos (espera 422)
+POST http://127.0.0.1:8000/api/proveedor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "razon_social": "",
+    "correo": "no-es-un-correo"
+}
+
+### mostrar
+GET http://127.0.0.1:8000/api/proveedor/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### mostrar inexistente (espera 404)
+GET http://127.0.0.1:8000/api/proveedor/9999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### modificar
+PUT http://127.0.0.1:8000/api/proveedor/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "razon_social": "Distribuidora Comercial Actualizada S.A.",
+    "nro_identificacion": "1020304012",
+    "contacto": "Carlos Ramirez",
+    "telefono": "2239999",
+    "correo": "ventas@comercial.com",
+    "observaciones": "Actualizado",
+    "estado": true
+}
+
+### modificar con datos invalidos (espera 422)
+PUT http://127.0.0.1:8000/api/proveedor/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "correo": "correo-invalido"
+}
+
+### eliminar
+DELETE http://127.0.0.1:8000/api/proveedor/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sin token (espera 401)
+GET http://127.0.0.1:8000/api/proveedor
+Accept: application/json
