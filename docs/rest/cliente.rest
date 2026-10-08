@@ -1,0 +1,91 @@
+@token = 4|l7ZuqPGEt5bC0o8uVG6ohoBZDaP8NzCuS94WyVhS5b9be79c
+
+### listar
+GET http://127.0.0.1:8000/api/cliente
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### listar con paginacion y busqueda
+GET http://127.0.0.1:8000/api/cliente?limit=5&search=juan
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### crear
+POST http://127.0.0.1:8000/api/cliente
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre_completo": "Juan Perez",
+    "nro_identificacion": "1234567",
+    "fecha_nacimiento": "1990-05-15",
+    "telefono": "70012345",
+    "correo": "juan.perez@correo.com",
+    "estado": true
+}
+
+### crear sin opcionales
+POST http://127.0.0.1:8000/api/cliente
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre_completo": "Maria Lopez"
+}
+
+### crear con datos invalidos (espera 422)
+POST http://127.0.0.1:8000/api/cliente
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre_completo": "",
+    "correo": "no-es-un-correo"
+}
+
+### mostrar
+GET http://127.0.0.1:8000/api/cliente/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### mostrar inexistente (espera 404)
+GET http://127.0.0.1:8000/api/cliente/9999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### modificar
+PUT http://127.0.0.1:8000/api/cliente/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre_completo": "Juan Perez Actualizado",
+    "nro_identificacion": "1234567",
+    "fecha_nacimiento": "1990-05-15",
+    "telefono": "70099999",
+    "correo": "juan.actualizado@correo.com",
+    "estado": true
+}
+
+### modificar con datos invalidos (espera 422)
+PUT http://127.0.0.1:8000/api/cliente/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "correo": "correo-invalido"
+}
+
+### eliminar
+DELETE http://127.0.0.1:8000/api/cliente/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sin token (espera 401)
+GET http://127.0.0.1:8000/api/cliente
+Accept: application/json
