@@ -1,0 +1,20 @@
+GET http://127.0.0.1:8000/api/compra
+Authorization: Bearer 6|4FYVhM4gzlxMsQuXWMTqzmaiFZiyI5p3OPnbYNpE70b71743
+
+### registrar compra
+POST http://127.0.0.1:8000/api/compra
+Authorization: Bearer 6|4FYVhM4gzlxMsQuXWMTqzmaiFZiyI5p3OPnbYNpE70b71743
+Content-Type: application/json
+Accept: application/json
+
+{
+    "proveedor_id": 1,
+    "descuento_total": 0,
+    
+    "detalle" : "S/D",
+    "observaciones": "S/O",
+    "movimientos": [
+        { "almacen_id": 1, "producto_id": 3, "cantidad": 5, "precio_unitario_compra": 359.98, "observaciones":"NINGUNO" },
+        { "almacen_id": 1, "producto_id": 2, "cantidad": 20, "precio_unitario_compra": 250, "observaciones": "NINGUNO" }
+    ]
+}
