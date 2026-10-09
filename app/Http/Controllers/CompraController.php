@@ -13,7 +13,7 @@ class CompraController extends Controller
      */
     public function index()
     {
-        $compras = Compra::paginate(10);
+        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])->paginate(10);
 
         return response()->json($compras);
     }
