@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProductosExport;
 use App\Models\Almacen;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductoController extends Controller
 {
@@ -180,5 +182,9 @@ class ProductoController extends Controller
         $producto->delete();
 
         return response()->json(["mensaje" => "Producto eliminado"]);
+    }
+
+    public function exportarExcel(){
+        return Excel::download(new ProductosExport, 'productos.xlsx');
     }
 }

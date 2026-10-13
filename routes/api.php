@@ -35,6 +35,9 @@ Route::prefix('/v1/auth')->group(function () {
 
 });
 
+// generar excel
+Route::get("/producto/generar-excel", [ProductoController::class, "exportarExcel"]);
+
 // generar PDF
 Route::get("/venta/{id}/generar-pdf", [VentaController::class, "generarReciboPDF"]);
 Route::get("/compra/{id}/generar-pdf", [CompraController::class, "generarReciboPDF"]);
