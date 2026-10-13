@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Compra;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CompraController extends Controller
 {
@@ -129,5 +130,13 @@ class CompraController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function generarReciboPDF($id){
+
+        $data = Compra::with(['user', 'proveedor', 'almacen_producto_compra'])->find($id);
+
+        $pdf = Pdf::loadView('pdf.recibo_compra', ["data" => $data]);
+        return $pdf->download("$data->codigo-recibo.pdf");
     }
 }

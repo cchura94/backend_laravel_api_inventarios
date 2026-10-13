@@ -37,6 +37,7 @@ Route::prefix('/v1/auth')->group(function () {
 
 // generar PDF
 Route::get("/venta/{id}/generar-pdf", [VentaController::class, "generarReciboPDF"]);
+Route::get("/compra/{id}/generar-pdf", [CompraController::class, "generarReciboPDF"]);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 

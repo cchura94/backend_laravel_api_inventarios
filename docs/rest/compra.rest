@@ -18,3 +18,7 @@ Accept: application/json
         { "almacen_id": 2, "producto_id": 2, "cantidad": 5, "precio_unitario_compra": 250, "observaciones": "NINGUNO" }
     ]
 }
+
+### generar PDF de la compra
+GET http://127.0.0.1:8000/api/compra/1/generar-pdf
+Accept: application/pdf
