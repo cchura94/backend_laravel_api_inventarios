@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VentaController extends Controller
 {
@@ -121,5 +122,13 @@ class VentaController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function generarReciboPDF($id){
+
+        $data = Venta::with(['user', 'cliente', 'almacen_producto_venta'])->find($id);
+
+        $pdf = Pdf::loadView('pdf.recibo', ["data" => $data]);
+        return $pdf->download("$data->codigo-recibo.pdf");
     }
 }

@@ -35,8 +35,11 @@ Route::prefix('/v1/auth')->group(function () {
 
 });
 
+// generar PDF
+Route::get("/venta/{id}/generar-pdf", [VentaController::class, "generarReciboPDF"]);
 
 Route::middleware(['auth:sanctum'])->group(function(){
+
 
     // subida de imagenes
     Route::post("/producto/{id}/subir-imagen", [ProductoController::class, "actualizarImagen"]);
