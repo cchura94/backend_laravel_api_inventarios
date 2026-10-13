@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VentaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource("/proveedor", ProveedorController::class);
 
     Route::apiResource("/compra", CompraController::class);
+    // CRUD ventas (Eloquent + transacciones, descuenta stock)
+    Route::apiResource("/venta", VentaController::class);
 
 
 });

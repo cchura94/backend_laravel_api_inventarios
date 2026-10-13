@@ -1,0 +1,84 @@
+@token = 7|5GzYQRnSIpMw1WqdYbuy0PA3wOguEyZbOsluk5RJbfb81025
+
+### listar
+GET http://127.0.0.1:8000/api/venta
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### crear nota de venta
+POST http://127.0.0.1:8000/api/venta
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "cliente_id": 1,
+    "descuento_total": 0,
+    "detalle": "Venta de mostrador",
+    "observaciones": "Cliente frecuente",
+    "movimientos": [
+        {
+            "almacen_id": 1,
+            "producto_id": 3,
+            "cantidad": 2,
+            "precio_unitario_venta": 59,
+            "observaciones": "Sin novedad"
+        },
+        {
+            "almacen_id": 1,
+            "producto_id": 2,
+            "cantidad": 1,
+            "precio_unitario_venta": 120
+        }
+    ]
+}
+
+### crear con datos invalidos (espera 422)
+POST http://127.0.0.1:8000/api/venta
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "cliente_id": 9999,
+    "movimientos": [
+        {
+            "almacen_id": 1,
+            "producto_id": 1,
+            "cantidad": 0,
+            "precio_unitario_venta": 59
+        }
+    ]
+}
+
+### crear con stock insuficiente (espera 500)
+POST http://127.0.0.1:8000/api/venta
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "cliente_id": 1,
+    "movimientos": [
+        {
+            "almacen_id": 1,
+            "producto_id": 2,
+            "cantidad": 999999,
+            "precio_unitario_venta": 59
+        }
+    ]
+}
+
+### mostrar
+GET http://127.0.0.1:8000/api/venta/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### mostrar inexistente (espera 404)
+GET http://127.0.0.1:8000/api/venta/9999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### sin token (espera 401)
+GET http://127.0.0.1:8000/api/venta
+Accept: application/json
