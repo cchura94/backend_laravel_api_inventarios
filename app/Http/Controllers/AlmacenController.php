@@ -15,7 +15,7 @@ class AlmacenController extends Controller
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
 
-        $almacenes = Almacen::with("sucursal")
+        $almacenes = Almacen::with(["sucursal"])
                             ->where(function ($query) use ($buscar) {
                                 $query->where("nombre", "iLIKE", "%$buscar%")
                                       ->orWhere("codigo", "iLIKE", "%$buscar%");

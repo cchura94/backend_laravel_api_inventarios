@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Almacen;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 
@@ -14,15 +15,24 @@ class ProductoController extends Controller
     {
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
-
-        $productos = Producto::with("categoria")
-            ->where(function ($query) use ($buscar) {
-                $query->where("nombre", "iLIKE", "%$buscar%")
-                      ->orWhere("codigo_barra", "iLIKE", "%$buscar%");
-            })
-            ->orderBy('id', 'DESC')
-            ->paginate($limite);
-
+        $almacen = $request->almacen_id;
+        
+        
+       
+        $productos = Producto::with(["categoria", 'almacenes'])
+           ->where(function ($query) use ($buscar) {
+               $query->where("nombre", "iLIKE", "%$buscar%")
+                     ->orWhere("codigo_barra", "iLIKE", "%$buscar%");
+           })
+           ->orderBy('id', 'DESC');
+           
+        if(isset($almacen)){
+            $productos = $productos->whereHas("almacenes", function($query) use ($almacen){
+                $query->where("almacens.id", "=", $almacen);
+            });
+        }
+           
+        $productos = $productos->paginate($limite);
         return response()->json($productos);
     }
 

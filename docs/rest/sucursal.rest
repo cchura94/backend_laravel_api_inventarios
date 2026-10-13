@@ -1,4 +1,4 @@
-@token = 3|ovhl0QembKyTdgUFtxZeXciXnCbfzb3GqSEC7yQ8caa89425
+@token = 7|5GzYQRnSIpMw1WqdYbuy0PA3wOguEyZbOsluk5RJbfb81025
 
 ### listar
 GET http://127.0.0.1:8000/api/sucursal

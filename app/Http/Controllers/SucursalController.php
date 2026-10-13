@@ -19,6 +19,7 @@ class SucursalController extends Controller
                                     $query->where("nombre", "iLIKE", "%$buscar%")
                                           ->orWhere("ciudad", "iLIKE", "%$buscar%");
                                 })
+                                ->with(['almacenes'])
                                 ->orderBy("id", "DESC")
                                 ->paginate($limite);
 

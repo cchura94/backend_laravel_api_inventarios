@@ -13,7 +13,7 @@ class CompraController extends Controller
      */
     public function index()
     {
-        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])->paginate(10);
+        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])->orderBy('id', 'DESC')->paginate(10);
 
         return response()->json($compras);
     }
@@ -50,6 +50,9 @@ class CompraController extends Controller
             $compra->user_id = $request->user()->id;
             $compra->proveedor_id = $request->proveedor_id;
             $compra->estado = "EN PROCESO";
+            $compra->save();
+
+            $compra->codigo = 'COMP-'.str_pad($compra->id, 6, '0', STR_PAD_LEFT);
             $compra->save();
 
             // Registrar Movimientos en la BD
