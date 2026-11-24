@@ -18,10 +18,11 @@ class ProductoController extends Controller
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
         $almacen = $request->almacen_id;
+        $sucursal = $request->sucursal_id;
         
         
        
-        $productos = Producto::with(["categoria", 'almacenes'])
+        $productos = Producto::with(["categoria", 'almacenes.sucursal'])
            ->where(function ($query) use ($buscar) {
                $query->where("nombre", "iLIKE", "%$buscar%")
                      ->orWhere("codigo_barra", "iLIKE", "%$buscar%");
@@ -31,6 +32,12 @@ class ProductoController extends Controller
         if(isset($almacen)){
             $productos = $productos->whereHas("almacenes", function($query) use ($almacen){
                 $query->where("almacens.id", "=", $almacen);
+            });
+        }
+
+        if(isset($sucursal)){
+            $productos = $productos->whereHas("almacenes.sucursal", function($query) use ($sucursal){
+                $query->where("sucursals.id", "=", $sucursal);
             });
         }
            
@@ -54,7 +61,7 @@ class ProductoController extends Controller
             "precio_venta_actual" => "required|numeric|min:0",
             "stock_minimo" => "nullable|integer|min:0",
             "imagen" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
-            "estado" => "required|boolean",
+            // "estado" => "boolean|nullable",
             "fecha_registro" => "nullable|date",
         ]);
 
@@ -67,7 +74,7 @@ class ProductoController extends Controller
         $prod->categoria_id = $datos["categoria_id"];
         $prod->precio_venta_actual = $datos["precio_venta_actual"];
         $prod->stock_minimo = $datos["stock_minimo"] ?? 1;
-        $prod->estado = $datos["estado"];
+        // $prod->estado = $datos["estado"];
         $prod->fecha_registro = $datos["fecha_registro"] ?? now();
 
         if ($file = $request->file("imagen")) {

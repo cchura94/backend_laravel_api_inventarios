@@ -64,7 +64,14 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // CRUD proveedores (Eloquent)
     Route::apiResource("/proveedor", ProveedorController::class);
 
+    // reporte PDF del listado de compras (debe ir antes del apiResource)
+    Route::get("/compra/reporte-pdf", [CompraController::class, "exportarPDF"]);
+
     Route::apiResource("/compra", CompraController::class);
+
+    // reporte PDF del listado de ventas (debe ir antes del apiResource)
+    Route::get("/venta/reporte-pdf", [VentaController::class, "exportarPDF"]);
+
     // CRUD ventas (Eloquent + transacciones, descuenta stock)
     Route::apiResource("/venta", VentaController::class);
 

@@ -12,9 +12,32 @@ class VentaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $ventas = Venta::with(['user', 'cliente', 'almacen_producto_venta'])->orderBy('id', 'DESC')->paginate(10);
+        $limite = $request->limit ?? 10;
+        $buscar = $request->search;
+        $desde = $request->desde;
+        $hasta = $request->hasta;
+
+        $ventas = Venta::with(['user', 'cliente', 'almacen_producto_venta'])
+            ->where(function ($query) use ($buscar) {
+                $query->where("codigo", "iLIKE", "%$buscar%")
+                      ->orWhereHas("cliente", function ($q) use ($buscar) {
+                          $q->where("nombre_completo", "iLIKE", "%$buscar%")
+                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
+                      })
+                      ->orWhereHas("user", function ($q) use ($buscar) {
+                          $q->where("name", "iLIKE", "%$buscar%");
+                      });
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate("fecha", ">=", $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate("fecha", "<=", $hasta);
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($limite);
 
         return response()->json($ventas);
     }
@@ -130,5 +153,41 @@ class VentaController extends Controller
 
         $pdf = Pdf::loadView('pdf.recibo', ["data" => $data]);
         return $pdf->download("$data->codigo-recibo.pdf");
+    }
+
+    public function exportarPDF(Request $request)
+    {
+        $buscar = $request->search;
+        $desde = $request->desde;
+        $hasta = $request->hasta;
+
+        $ventas = Venta::with(['user', 'cliente', 'almacen_producto_venta'])
+            ->where(function ($query) use ($buscar) {
+                $query->where("codigo", "iLIKE", "%$buscar%")
+                      ->orWhereHas("cliente", function ($q) use ($buscar) {
+                          $q->where("nombre_completo", "iLIKE", "%$buscar%")
+                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
+                      })
+                      ->orWhereHas("user", function ($q) use ($buscar) {
+                          $q->where("name", "iLIKE", "%$buscar%");
+                      });
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate("fecha", ">=", $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate("fecha", "<=", $hasta);
+            })
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.reporte_ventas', [
+            "ventas" => $ventas,
+            "buscar" => $buscar,
+            "desde" => $desde,
+            "hasta" => $hasta,
+        ]);
+
+        return $pdf->download("reporte-ventas.pdf");
     }
 }

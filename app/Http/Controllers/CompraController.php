@@ -12,9 +12,32 @@ class CompraController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])->orderBy('id', 'DESC')->paginate(10);
+        $limite = $request->limit ?? 10;
+        $buscar = $request->search;
+        $desde = $request->desde;
+        $hasta = $request->hasta;
+
+        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])
+            ->where(function ($query) use ($buscar) {
+                $query->where("codigo", "iLIKE", "%$buscar%")
+                      ->orWhereHas("proveedor", function ($q) use ($buscar) {
+                          $q->where("razon_social", "iLIKE", "%$buscar%")
+                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
+                      })
+                      ->orWhereHas("user", function ($q) use ($buscar) {
+                          $q->where("name", "iLIKE", "%$buscar%");
+                      });
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate("fecha", ">=", $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate("fecha", "<=", $hasta);
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($limite);
 
         return response()->json($compras);
     }
@@ -138,5 +161,41 @@ class CompraController extends Controller
 
         $pdf = Pdf::loadView('pdf.recibo_compra', ["data" => $data]);
         return $pdf->download("$data->codigo-recibo.pdf");
+    }
+
+    public function exportarPDF(Request $request)
+    {
+        $buscar = $request->search;
+        $desde = $request->desde;
+        $hasta = $request->hasta;
+
+        $compras = Compra::with(['user', 'proveedor', 'almacen_producto_compra'])
+            ->where(function ($query) use ($buscar) {
+                $query->where("codigo", "iLIKE", "%$buscar%")
+                      ->orWhereHas("proveedor", function ($q) use ($buscar) {
+                          $q->where("razon_social", "iLIKE", "%$buscar%")
+                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
+                      })
+                      ->orWhereHas("user", function ($q) use ($buscar) {
+                          $q->where("name", "iLIKE", "%$buscar%");
+                      });
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate("fecha", ">=", $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate("fecha", "<=", $hasta);
+            })
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.reporte_compras', [
+            "compras" => $compras,
+            "buscar" => $buscar,
+            "desde" => $desde,
+            "hasta" => $hasta,
+        ]);
+
+        return $pdf->download("reporte-compras.pdf");
     }
 }

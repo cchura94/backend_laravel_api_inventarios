@@ -3,6 +3,7 @@ Authorization: Bearer 1|Inn7brulFhtAxaNxKV15wlaWfm8b6y65lDhnQcw03bafa58b
 
 ###
 POST http://127.0.0.1:8000/api/categoria
+Authorization: Bearer 3|JlDMYqcLpZJCPzsaEyakStQ7ewQg16Dc7ruSH3we92ed04b7
 Content-Type: application/json
 Accept: application/json
 
