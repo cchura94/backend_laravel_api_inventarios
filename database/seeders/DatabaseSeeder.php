@@ -21,12 +21,13 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        
-        $usuario = new User();
-        $usuario->name = "administrador";
-        $usuario->email = "admin@mail.com";
-        $usuario->password = "Admin.54321";
+
+        $usuario = new User;
+        $usuario->name = 'administrador';
+        $usuario->email = 'admin@mail.com';
+        $usuario->password = 'Admin.54321';
         $usuario->save();
 
+        $this->call(RolesYPermisosSeeder::class);
     }
 }

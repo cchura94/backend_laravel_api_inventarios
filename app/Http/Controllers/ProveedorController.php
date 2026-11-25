@@ -12,17 +12,19 @@ class ProveedorController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('proveedor.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
 
         $proveedores = Proveedor::where(function ($query) use ($buscar) {
-                                $query->where("razon_social", "iLIKE", "%$buscar%")
-                                      ->orWhere("nro_identificacion", "iLIKE", "%$buscar%")
-                                      ->orWhere("contacto", "iLIKE", "%$buscar%")
-                                      ->orWhere("correo", "iLIKE", "%$buscar%");
-                            })
-                            ->orderBy("id", "DESC")
-                            ->paginate($limite);
+            $query->where('razon_social', 'iLIKE', "%$buscar%")
+                ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%")
+                ->orWhere('contacto', 'iLIKE', "%$buscar%")
+                ->orWhere('correo', 'iLIKE', "%$buscar%");
+        })
+            ->orderBy('id', 'DESC')
+            ->paginate($limite);
 
         return response()->json($proveedores);
     }
@@ -32,21 +34,23 @@ class ProveedorController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('proveedor.crear');
+
         $datos = $request->validate([
-            "razon_social" => "required|string|max:255",
-            "nro_identificacion" => "nullable|string|max:30",
-            "contacto" => "nullable|string|max:100",
-            "telefono" => "nullable|string|max:22",
-            "correo" => "nullable|email|max:200",
-            "observaciones" => "nullable|string",
-            "estado" => "nullable|boolean",
+            'razon_social' => 'required|string|max:255',
+            'nro_identificacion' => 'nullable|string|max:30',
+            'contacto' => 'nullable|string|max:100',
+            'telefono' => 'nullable|string|max:22',
+            'correo' => 'nullable|email|max:200',
+            'observaciones' => 'nullable|string',
+            'estado' => 'nullable|boolean',
         ]);
 
         $proveedor = Proveedor::create($datos);
 
         return response()->json([
-            "mensaje" => "Proveedor registrado",
-            "proveedor" => $proveedor,
+            'mensaje' => 'Proveedor registrado',
+            'proveedor' => $proveedor,
         ], 201);
     }
 
@@ -55,7 +59,9 @@ class ProveedorController extends Controller
      */
     public function show(string $id)
     {
-        $proveedor = Proveedor::with("compras")->findOrFail($id);
+        $this->authorize('proveedor.ver');
+
+        $proveedor = Proveedor::with('compras')->findOrFail($id);
 
         return response()->json($proveedor);
     }
@@ -65,23 +71,25 @@ class ProveedorController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('proveedor.editar');
+
         $proveedor = Proveedor::findOrFail($id);
 
         $datos = $request->validate([
-            "razon_social" => "required|string|max:255",
-            "nro_identificacion" => "nullable|string|max:30",
-            "contacto" => "nullable|string|max:100",
-            "telefono" => "nullable|string|max:22",
-            "correo" => "nullable|email|max:200",
-            "observaciones" => "nullable|string",
-            "estado" => "nullable|boolean",
+            'razon_social' => 'required|string|max:255',
+            'nro_identificacion' => 'nullable|string|max:30',
+            'contacto' => 'nullable|string|max:100',
+            'telefono' => 'nullable|string|max:22',
+            'correo' => 'nullable|email|max:200',
+            'observaciones' => 'nullable|string',
+            'estado' => 'nullable|boolean',
         ]);
 
         $proveedor->update($datos);
 
         return response()->json([
-            "mensaje" => "Proveedor actualizado",
-            "proveedor" => $proveedor,
+            'mensaje' => 'Proveedor actualizado',
+            'proveedor' => $proveedor,
         ]);
     }
 
@@ -90,9 +98,11 @@ class ProveedorController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('proveedor.eliminar');
+
         $proveedor = Proveedor::findOrFail($id);
         $proveedor->delete();
 
-        return response()->json(["mensaje" => "Proveedor eliminado"]);
+        return response()->json(['mensaje' => 'Proveedor eliminado']);
     }
 }

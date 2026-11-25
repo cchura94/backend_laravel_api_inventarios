@@ -1,0 +1,40 @@
+# CRUD de permisos
+# {{token}} = access_token devuelto por POST /api/v1/auth/login
+# Todos los endpoints requieren: Authorization: Bearer {{token}}
+
+### Listar permisos (paginado + búsqueda por nombre/descripción)
+GET http://127.0.0.1:8000/api/permiso?limit=10&search=producto
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Crear permiso ("nombre" es único)
+POST http://127.0.0.1:8000/api/permiso
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "producto.crear",
+    "descripcion": "Permite registrar productos"
+}
+
+### Mostrar permiso (incluye los roles que lo tienen)
+GET http://127.0.0.1:8000/api/permiso/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Actualizar permiso
+PUT http://127.0.0.1:8000/api/permiso/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "producto.registrar",
+    "descripcion": "Permite registrar productos"
+}
+
+### Eliminar permiso (lo quita de todos los roles antes de borrar)
+DELETE http://127.0.0.1:8000/api/permiso/1
+Authorization: Bearer {{token}}
+Accept: application/json

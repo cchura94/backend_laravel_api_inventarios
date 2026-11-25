@@ -12,7 +12,9 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        $categorias = DB::select("SELECT * FROM categorias");
+        $this->authorize('categoria.ver');
+
+        $categorias = DB::select('SELECT * FROM categorias');
 
         return response()->json($categorias);
     }
@@ -22,11 +24,13 @@ class CategoriaController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('categoria.crear');
+
         $nombre = $request->nombre;
         $descripcion = $request->descripcion;
-        DB::insert("insert into categorias(nombre, descripcion) values (?, ?)", [$nombre, $descripcion]);
+        DB::insert('insert into categorias(nombre, descripcion) values (?, ?)', [$nombre, $descripcion]);
 
-        return response()->json(["message" => "Categoria registrada en la BD"]);
+        return response()->json(['message' => 'Categoria registrada en la BD']);
     }
 
     /**
@@ -34,6 +38,8 @@ class CategoriaController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('categoria.ver');
+
         $categoria = DB::select("select * from categorias where id = $id");
 
         return response()->json($categoria);
@@ -45,11 +51,14 @@ class CategoriaController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('categoria.editar');
+
         $nombre = $request->nombre;
         $descripcion = $request->descripcion;
 
         DB::update("update categorias set nombre='$nombre', descripcion='$descripcion' where id = $id");
-        return response()->json(["message" => "Categoria actualizada en la BD"]);
+
+        return response()->json(['message' => 'Categoria actualizada en la BD']);
 
     }
 
@@ -58,8 +67,11 @@ class CategoriaController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('categoria.eliminar');
+
         DB::delete("delete from categorias where id = $id");
-        return response()->json(["message" => "Categoria Eliminado de la BD"]);
+
+        return response()->json(['message' => 'Categoria Eliminado de la BD']);
 
     }
 }

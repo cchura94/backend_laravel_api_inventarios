@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductosExport;
-use App\Models\Almacen;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,33 +14,34 @@ class ProductoController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('producto.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
         $almacen = $request->almacen_id;
         $sucursal = $request->sucursal_id;
-        
-        
-       
-        $productos = Producto::with(["categoria", 'almacenes.sucursal'])
-           ->where(function ($query) use ($buscar) {
-               $query->where("nombre", "iLIKE", "%$buscar%")
-                     ->orWhere("codigo_barra", "iLIKE", "%$buscar%");
-           })
-           ->orderBy('id', 'DESC');
-           
-        if(isset($almacen)){
-            $productos = $productos->whereHas("almacenes", function($query) use ($almacen){
-                $query->where("almacens.id", "=", $almacen);
+
+        $productos = Producto::with(['categoria', 'almacenes.sucursal'])
+            ->where(function ($query) use ($buscar) {
+                $query->where('nombre', 'iLIKE', "%$buscar%")
+                    ->orWhere('codigo_barra', 'iLIKE', "%$buscar%");
+            })
+            ->orderBy('id', 'DESC');
+
+        if (isset($almacen)) {
+            $productos = $productos->whereHas('almacenes', function ($query) use ($almacen) {
+                $query->where('almacens.id', '=', $almacen);
             });
         }
 
-        if(isset($sucursal)){
-            $productos = $productos->whereHas("almacenes.sucursal", function($query) use ($sucursal){
-                $query->where("sucursals.id", "=", $sucursal);
+        if (isset($sucursal)) {
+            $productos = $productos->whereHas('almacenes.sucursal', function ($query) use ($sucursal) {
+                $query->where('sucursals.id', '=', $sucursal);
             });
         }
-           
+
         $productos = $productos->paginate($limite);
+
         return response()->json($productos);
     }
 
@@ -50,63 +50,67 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('producto.crear');
+
         // validar
         $datos = $request->validate([
-            "nombre" => "required|string|max:200",
-            "descripcion" => "nullable|string",
-            "codigo_barra" => "nullable|string|max:100",
-            "unidad_medida" => "nullable|string|max:50",
-            "marca" => "nullable|string|max:100",
-            "categoria_id" => "required|integer|exists:categorias,id",
-            "precio_venta_actual" => "required|numeric|min:0",
-            "stock_minimo" => "nullable|integer|min:0",
-            "imagen" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
+            'nombre' => 'required|string|max:200',
+            'descripcion' => 'nullable|string',
+            'codigo_barra' => 'nullable|string|max:100',
+            'unidad_medida' => 'nullable|string|max:50',
+            'marca' => 'nullable|string|max:100',
+            'categoria_id' => 'required|integer|exists:categorias,id',
+            'precio_venta_actual' => 'required|numeric|min:0',
+            'stock_minimo' => 'nullable|integer|min:0',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             // "estado" => "boolean|nullable",
-            "fecha_registro" => "nullable|date",
+            'fecha_registro' => 'nullable|date',
         ]);
 
-        $prod = new Producto();
-        $prod->nombre = $datos["nombre"];
-        $prod->descripcion = $datos["descripcion"] ?? null;
-        $prod->codigo_barra = $datos["codigo_barra"] ?? null;
-        $prod->unidad_medida = $datos["unidad_medida"] ?? null;
-        $prod->marca = $datos["marca"] ?? null;
-        $prod->categoria_id = $datos["categoria_id"];
-        $prod->precio_venta_actual = $datos["precio_venta_actual"];
-        $prod->stock_minimo = $datos["stock_minimo"] ?? 1;
+        $prod = new Producto;
+        $prod->nombre = $datos['nombre'];
+        $prod->descripcion = $datos['descripcion'] ?? null;
+        $prod->codigo_barra = $datos['codigo_barra'] ?? null;
+        $prod->unidad_medida = $datos['unidad_medida'] ?? null;
+        $prod->marca = $datos['marca'] ?? null;
+        $prod->categoria_id = $datos['categoria_id'];
+        $prod->precio_venta_actual = $datos['precio_venta_actual'];
+        $prod->stock_minimo = $datos['stock_minimo'] ?? 1;
         // $prod->estado = $datos["estado"];
-        $prod->fecha_registro = $datos["fecha_registro"] ?? now();
+        $prod->fecha_registro = $datos['fecha_registro'] ?? now();
 
-        if ($file = $request->file("imagen")) {
-            $direccion_url = time()."-".$file->getClientOriginalName();
-            $file->move("imagenes", $direccion_url);
+        if ($file = $request->file('imagen')) {
+            $direccion_url = time().'-'.$file->getClientOriginalName();
+            $file->move('imagenes', $direccion_url);
 
-            $prod->imagen = "imagenes/".$direccion_url;
+            $prod->imagen = 'imagenes/'.$direccion_url;
         }
 
         $prod->save();
 
         // responder
         return response()->json([
-            "mensaje" => "Producto registrado",
-            "producto" => $prod->load("categoria"),
+            'mensaje' => 'Producto registrado',
+            'producto' => $prod->load('categoria'),
         ], 201);
     }
 
-    public function actualizarImagen(Request $request, $id){
+    public function actualizarImagen(Request $request, $id)
+    {
+        $this->authorize('producto.editar');
 
         $request->validate(
             [
-                "imagen" => "required|image|mimes:jpeg,png,jpg,gif|max:2048"
+                'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]
         );
 
-        if($file = $request->file("imagen")){
-            $direccion_url = time()."-".$file->getClientOriginalName();
-            $file->move("imagenes", $direccion_url);
+        if ($file = $request->file('imagen')) {
+            $direccion_url = time().'-'.$file->getClientOriginalName();
+            $file->move('imagenes', $direccion_url);
 
             $producto = Producto::find($id);
-            $producto->imagen = "imagenes/".$direccion_url;
+            $producto->imagen = 'imagenes/'.$direccion_url;
             $producto->update();
 
             return response()->json($producto);
@@ -118,7 +122,9 @@ class ProductoController extends Controller
      */
     public function show(string $id)
     {
-        $producto = Producto::with(["categoria", "almacenes"])->findOrFail($id);
+        $this->authorize('producto.ver');
+
+        $producto = Producto::with(['categoria', 'almacenes'])->findOrFail($id);
 
         return response()->json($producto);
     }
@@ -128,48 +134,50 @@ class ProductoController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('producto.editar');
+
         $producto = Producto::findOrFail($id);
 
         $datos = $request->validate([
-            "nombre" => "required|string|max:200",
-            "descripcion" => "nullable|string",
-            "codigo_barra" => "nullable|string|max:100",
-            "unidad_medida" => "nullable|string|max:50",
-            "marca" => "nullable|string|max:100",
-            "categoria_id" => "required|integer|exists:categorias,id",
-            "precio_venta_actual" => "required|numeric|min:0",
-            "stock_minimo" => "nullable|integer|min:0",
-            "imagen" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
-            "estado" => "required|boolean",
-            "fecha_registro" => "nullable|date",
+            'nombre' => 'required|string|max:200',
+            'descripcion' => 'nullable|string',
+            'codigo_barra' => 'nullable|string|max:100',
+            'unidad_medida' => 'nullable|string|max:50',
+            'marca' => 'nullable|string|max:100',
+            'categoria_id' => 'required|integer|exists:categorias,id',
+            'precio_venta_actual' => 'required|numeric|min:0',
+            'stock_minimo' => 'nullable|integer|min:0',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'estado' => 'required|boolean',
+            'fecha_registro' => 'nullable|date',
         ]);
 
-        $producto->nombre = $datos["nombre"];
-        $producto->descripcion = $datos["descripcion"] ?? null;
-        $producto->codigo_barra = $datos["codigo_barra"] ?? null;
-        $producto->unidad_medida = $datos["unidad_medida"] ?? null;
-        $producto->marca = $datos["marca"] ?? null;
-        $producto->categoria_id = $datos["categoria_id"];
-        $producto->precio_venta_actual = $datos["precio_venta_actual"];
-        $producto->stock_minimo = $datos["stock_minimo"] ?? 1;
-        $producto->estado = $datos["estado"];
+        $producto->nombre = $datos['nombre'];
+        $producto->descripcion = $datos['descripcion'] ?? null;
+        $producto->codigo_barra = $datos['codigo_barra'] ?? null;
+        $producto->unidad_medida = $datos['unidad_medida'] ?? null;
+        $producto->marca = $datos['marca'] ?? null;
+        $producto->categoria_id = $datos['categoria_id'];
+        $producto->precio_venta_actual = $datos['precio_venta_actual'];
+        $producto->stock_minimo = $datos['stock_minimo'] ?? 1;
+        $producto->estado = $datos['estado'];
 
-        if (!empty($datos["fecha_registro"])) {
-            $producto->fecha_registro = $datos["fecha_registro"];
+        if (! empty($datos['fecha_registro'])) {
+            $producto->fecha_registro = $datos['fecha_registro'];
         }
 
-        if ($file = $request->file("imagen")) {
-            $direccion_url = time()."-".$file->getClientOriginalName();
-            $file->move("imagenes", $direccion_url);
+        if ($file = $request->file('imagen')) {
+            $direccion_url = time().'-'.$file->getClientOriginalName();
+            $file->move('imagenes', $direccion_url);
 
-            $producto->imagen = "imagenes/".$direccion_url;
+            $producto->imagen = 'imagenes/'.$direccion_url;
         }
 
         $producto->save();
 
         return response()->json([
-            "mensaje" => "Producto actualizado",
-            "producto" => $producto->load("categoria"),
+            'mensaje' => 'Producto actualizado',
+            'producto' => $producto->load('categoria'),
         ]);
     }
 
@@ -178,20 +186,25 @@ class ProductoController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('producto.eliminar');
+
         $producto = Producto::findOrFail($id);
 
         if ($producto->almacenes()->exists()) {
             return response()->json([
-                "mensaje" => "No se puede eliminar el producto porque tiene stock en almacenes",
+                'mensaje' => 'No se puede eliminar el producto porque tiene stock en almacenes',
             ], 409);
         }
 
         $producto->delete();
 
-        return response()->json(["mensaje" => "Producto eliminado"]);
+        return response()->json(['mensaje' => 'Producto eliminado']);
     }
 
-    public function exportarExcel(){
+    public function exportarExcel()
+    {
+        $this->authorize('producto.ver');
+
         return Excel::download(new ProductosExport, 'productos.xlsx');
     }
 }

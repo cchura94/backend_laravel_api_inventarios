@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class VentaController extends Controller
 {
@@ -14,6 +14,8 @@ class VentaController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('venta.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
         $desde = $request->desde;
@@ -21,20 +23,20 @@ class VentaController extends Controller
 
         $ventas = Venta::with(['user', 'cliente', 'almacen_producto_venta'])
             ->where(function ($query) use ($buscar) {
-                $query->where("codigo", "iLIKE", "%$buscar%")
-                      ->orWhereHas("cliente", function ($q) use ($buscar) {
-                          $q->where("nombre_completo", "iLIKE", "%$buscar%")
-                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
-                      })
-                      ->orWhereHas("user", function ($q) use ($buscar) {
-                          $q->where("name", "iLIKE", "%$buscar%");
-                      });
+                $query->where('codigo', 'iLIKE', "%$buscar%")
+                    ->orWhereHas('cliente', function ($q) use ($buscar) {
+                        $q->where('nombre_completo', 'iLIKE', "%$buscar%")
+                            ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%");
+                    })
+                    ->orWhereHas('user', function ($q) use ($buscar) {
+                        $q->where('name', 'iLIKE', "%$buscar%");
+                    });
             })
             ->when($desde, function ($query, $desde) {
-                $query->whereDate("fecha", ">=", $desde);
+                $query->whereDate('fecha', '>=', $desde);
             })
             ->when($hasta, function ($query, $hasta) {
-                $query->whereDate("fecha", "<=", $hasta);
+                $query->whereDate('fecha', '<=', $hasta);
             })
             ->orderBy('id', 'DESC')
             ->paginate($limite);
@@ -47,30 +49,32 @@ class VentaController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('venta.crear');
+
         $request->validate([
-            "cliente_id" => "required|exists:clientes,id",
-            "descuento_total" => "nullable",
-            "detalle" => "nullable",
-            "observaciones" => "nullable",
-            "movimientos.*.almacen_id" => "required|exists:almacens,id",
-            "movimientos.*.producto_id" => "required|exists:productos,id",
-            "movimientos.*.cantidad" => "required|integer|min:1",
-            "movimientos.*.precio_unitario_venta" => "required|numeric",
+            'cliente_id' => 'required|exists:clientes,id',
+            'descuento_total' => 'nullable',
+            'detalle' => 'nullable',
+            'observaciones' => 'nullable',
+            'movimientos.*.almacen_id' => 'required|exists:almacens,id',
+            'movimientos.*.producto_id' => 'required|exists:productos,id',
+            'movimientos.*.cantidad' => 'required|integer|min:1',
+            'movimientos.*.precio_unitario_venta' => 'required|numeric',
         ]);
 
         try {
             // Transacciones
             DB::beginTransaction();
             // Creación de una Nota de Venta en la BD
-            $venta = new Venta();
-            $venta->codigo = "";
+            $venta = new Venta;
+            $venta->codigo = '';
             $venta->fecha = date('Y-m-d H:i:s');
             $venta->detalle = $request->detalle;
             $venta->descuento_total = $request->descuento_total;
             $venta->observaciones = $request->observaciones;
             $venta->user_id = $request->user()->id;
             $venta->cliente_id = $request->cliente_id;
-            $venta->estado = "EN PROCESO";
+            $venta->estado = 'EN PROCESO';
             $venta->save();
 
             $venta->codigo = 'VENT-'.str_pad($venta->id, 6, '0', STR_PAD_LEFT);
@@ -81,11 +85,11 @@ class VentaController extends Controller
             foreach ($request->movimientos as $mov) {
                 // verificamos stock disponible
                 $pivot = DB::table('almacen_producto')
-                                ->where('almacen_id', $mov['almacen_id'])
-                                ->where('producto_id', $mov['producto_id'])
-                                ->first();
+                    ->where('almacen_id', $mov['almacen_id'])
+                    ->where('producto_id', $mov['producto_id'])
+                    ->first();
 
-                if (!$pivot || $pivot->cantidad_actual < $mov['cantidad']) {
+                if (! $pivot || $pivot->cantidad_actual < $mov['cantidad']) {
                     $disponible = $pivot ? $pivot->cantidad_actual : 0;
                     throw new \Exception("Stock insuficiente para el producto id {$mov['producto_id']} en el almacen id {$mov['almacen_id']}. Disponible: {$disponible}");
                 }
@@ -100,24 +104,26 @@ class VentaController extends Controller
                 // actualizamos el stock
                 $nuevaCantidad = $pivot->cantidad_actual - $mov['cantidad'];
                 DB::table('almacen_producto')
-                            ->where('almacen_id', $mov['almacen_id'])
-                            ->where('producto_id', $mov['producto_id'])
-                            ->update([
-                                "cantidad_actual" => $nuevaCantidad,
-                                "fecha_actualizacion" => date('Y-m-d H:i:s')
-                            ]);
+                    ->where('almacen_id', $mov['almacen_id'])
+                    ->where('producto_id', $mov['producto_id'])
+                    ->update([
+                        'cantidad_actual' => $nuevaCantidad,
+                        'fecha_actualizacion' => date('Y-m-d H:i:s'),
+                    ]);
             }
 
             // Registrar nota venta
-            $venta->estado = "COMPLETADO";
+            $venta->estado = 'COMPLETADO';
             $venta->update();
 
             DB::commit();
-            return response()->json(["mensaje" => "Nota de Venta Creada correctamente"], 201);
+
+            return response()->json(['mensaje' => 'Nota de Venta Creada correctamente'], 201);
         } catch (\Exception $e) {
-            //revierte todo;
+            // revierte todo;
             DB::rollBack();
-            return response()->json(["mensaje" => "Error al registrar la Nota de Venta", "error" => $e->getMessage()], 500);
+
+            return response()->json(['mensaje' => 'Error al registrar la Nota de Venta', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -126,6 +132,8 @@ class VentaController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('venta.ver');
+
         $venta = Venta::with(['user', 'cliente', 'almacen_producto_venta'])->findOrFail($id);
 
         return response()->json($venta);
@@ -136,6 +144,8 @@ class VentaController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('venta.editar');
+
         //
     }
 
@@ -144,50 +154,57 @@ class VentaController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('venta.eliminar');
+
         //
     }
 
-    public function generarReciboPDF($id){
+    public function generarReciboPDF($id)
+    {
+        $this->authorize('venta.ver');
 
         $data = Venta::with(['user', 'cliente', 'almacen_producto_venta'])->find($id);
 
-        $pdf = Pdf::loadView('pdf.recibo', ["data" => $data]);
+        $pdf = Pdf::loadView('pdf.recibo', ['data' => $data]);
+
         return $pdf->download("$data->codigo-recibo.pdf");
     }
 
     public function exportarPDF(Request $request)
     {
+        $this->authorize('venta.ver');
+
         $buscar = $request->search;
         $desde = $request->desde;
         $hasta = $request->hasta;
 
         $ventas = Venta::with(['user', 'cliente', 'almacen_producto_venta'])
             ->where(function ($query) use ($buscar) {
-                $query->where("codigo", "iLIKE", "%$buscar%")
-                      ->orWhereHas("cliente", function ($q) use ($buscar) {
-                          $q->where("nombre_completo", "iLIKE", "%$buscar%")
-                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
-                      })
-                      ->orWhereHas("user", function ($q) use ($buscar) {
-                          $q->where("name", "iLIKE", "%$buscar%");
-                      });
+                $query->where('codigo', 'iLIKE', "%$buscar%")
+                    ->orWhereHas('cliente', function ($q) use ($buscar) {
+                        $q->where('nombre_completo', 'iLIKE', "%$buscar%")
+                            ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%");
+                    })
+                    ->orWhereHas('user', function ($q) use ($buscar) {
+                        $q->where('name', 'iLIKE', "%$buscar%");
+                    });
             })
             ->when($desde, function ($query, $desde) {
-                $query->whereDate("fecha", ">=", $desde);
+                $query->whereDate('fecha', '>=', $desde);
             })
             ->when($hasta, function ($query, $hasta) {
-                $query->whereDate("fecha", "<=", $hasta);
+                $query->whereDate('fecha', '<=', $hasta);
             })
             ->orderBy('id', 'DESC')
             ->get();
 
         $pdf = Pdf::loadView('pdf.reporte_ventas', [
-            "ventas" => $ventas,
-            "buscar" => $buscar,
-            "desde" => $desde,
-            "hasta" => $hasta,
+            'ventas' => $ventas,
+            'buscar' => $buscar,
+            'desde' => $desde,
+            'hasta' => $hasta,
         ]);
 
-        return $pdf->download("reporte-ventas.pdf");
+        return $pdf->download('reporte-ventas.pdf');
     }
 }

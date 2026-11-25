@@ -1,0 +1,62 @@
+# CRUD de roles (RBAC)
+# {{token}} = access_token devuelto por POST /api/v1/auth/login
+# Todos los endpoints requieren: Authorization: Bearer {{token}}
+
+### Listar roles (paginado + búsqueda por nombre/descripción)
+GET http://127.0.0.1:8000/api/rol?limit=10&search=admin
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Crear rol (permisos es opcional: ids de /api/permiso)
+POST http://127.0.0.1:8000/api/rol
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Almacenero",
+    "descripcion": "Gestiona almacenes y stock",
+    "permisos": [1, 2]
+}
+
+### Mostrar rol (incluye permisos y nº de usuarios)
+GET http://127.0.0.1:8000/api/rol/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Actualizar rol (si envían "permisos" se reemplazan los actuales)
+PUT http://127.0.0.1:8000/api/rol/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "nombre": "Almacenero",
+    "descripcion": "Gestiona almacenes, stock y compras",
+    "permisos": [1, 3]
+}
+
+### Reemplazar por completo los permisos del rol
+PUT http://127.0.0.1:8000/api/rol/1/permisos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "permisos": [1, 2, 3]
+}
+
+### Asignar un permiso al rol (sin quitar los existentes)
+POST http://127.0.0.1:8000/api/rol/1/permisos/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Quitar un permiso del rol
+DELETE http://127.0.0.1:8000/api/rol/1/permisos/2
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Eliminar rol (limpia role_user y permission_role antes de borrar)
+DELETE http://127.0.0.1:8000/api/rol/1
+Authorization: Bearer {{token}}
+Accept: application/json

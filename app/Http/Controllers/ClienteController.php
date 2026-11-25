@@ -12,17 +12,19 @@ class ClienteController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('cliente.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
 
         $clientes = Cliente::where(function ($query) use ($buscar) {
-                                $query->where("nombre_completo", "iLIKE", "%$buscar%")
-                                      ->orWhere("nro_identificacion", "iLIKE", "%$buscar%")
-                                      ->orWhere("correo", "iLIKE", "%$buscar%")
-                                      ->orWhere("telefono", "iLIKE", "%$buscar%");
-                            })
-                            ->orderBy("id", "DESC")
-                            ->paginate($limite);
+            $query->where('nombre_completo', 'iLIKE', "%$buscar%")
+                ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%")
+                ->orWhere('correo', 'iLIKE', "%$buscar%")
+                ->orWhere('telefono', 'iLIKE', "%$buscar%");
+        })
+            ->orderBy('id', 'DESC')
+            ->paginate($limite);
 
         return response()->json($clientes);
     }
@@ -32,20 +34,22 @@ class ClienteController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('cliente.crear');
+
         $datos = $request->validate([
-            "nombre_completo" => "required|string|max:255",
-            "nro_identificacion" => "nullable|string|max:30",
-            "fecha_nacimiento" => "nullable|date",
-            "telefono" => "nullable|string|max:22",
-            "correo" => "nullable|email|max:200",
-            "estado" => "nullable|boolean",
+            'nombre_completo' => 'required|string|max:255',
+            'nro_identificacion' => 'nullable|string|max:30',
+            'fecha_nacimiento' => 'nullable|date',
+            'telefono' => 'nullable|string|max:22',
+            'correo' => 'nullable|email|max:200',
+            'estado' => 'nullable|boolean',
         ]);
 
         $cliente = Cliente::create($datos);
 
         return response()->json([
-            "mensaje" => "Cliente registrado",
-            "cliente" => $cliente,
+            'mensaje' => 'Cliente registrado',
+            'cliente' => $cliente,
         ], 201);
     }
 
@@ -54,7 +58,9 @@ class ClienteController extends Controller
      */
     public function show(string $id)
     {
-        $cliente = Cliente::with("ventas")->findOrFail($id);
+        $this->authorize('cliente.ver');
+
+        $cliente = Cliente::with('ventas')->findOrFail($id);
 
         return response()->json($cliente);
     }
@@ -64,22 +70,24 @@ class ClienteController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('cliente.editar');
+
         $cliente = Cliente::findOrFail($id);
 
         $datos = $request->validate([
-            "nombre_completo" => "required|string|max:255",
-            "nro_identificacion" => "nullable|string|max:30",
-            "fecha_nacimiento" => "nullable|date",
-            "telefono" => "nullable|string|max:22",
-            "correo" => "nullable|email|max:200",
-            "estado" => "nullable|boolean",
+            'nombre_completo' => 'required|string|max:255',
+            'nro_identificacion' => 'nullable|string|max:30',
+            'fecha_nacimiento' => 'nullable|date',
+            'telefono' => 'nullable|string|max:22',
+            'correo' => 'nullable|email|max:200',
+            'estado' => 'nullable|boolean',
         ]);
 
         $cliente->update($datos);
 
         return response()->json([
-            "mensaje" => "Cliente actualizado",
-            "cliente" => $cliente,
+            'mensaje' => 'Cliente actualizado',
+            'cliente' => $cliente,
         ]);
     }
 
@@ -88,9 +96,11 @@ class ClienteController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('cliente.eliminar');
+
         $cliente = Cliente::findOrFail($id);
         $cliente->delete();
 
-        return response()->json(["mensaje" => "Cliente eliminado"]);
+        return response()->json(['mensaje' => 'Cliente eliminado']);
     }
 }

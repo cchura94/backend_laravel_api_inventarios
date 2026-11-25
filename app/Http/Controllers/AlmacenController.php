@@ -12,19 +12,21 @@ class AlmacenController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('almacen.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
 
-        $almacenes = Almacen::with(["sucursal"])
-                            ->where(function ($query) use ($buscar) {
-                                $query->where("nombre", "iLIKE", "%$buscar%")
-                                      ->orWhere("codigo", "iLIKE", "%$buscar%");
-                            })
-                            ->when($request->sucursal_id, function ($query, $sucursalId) {
-                                $query->where("sucursal_id", $sucursalId);
-                            })
-                            ->orderBy("id", "DESC")
-                            ->paginate($limite);
+        $almacenes = Almacen::with(['sucursal'])
+            ->where(function ($query) use ($buscar) {
+                $query->where('nombre', 'iLIKE', "%$buscar%")
+                    ->orWhere('codigo', 'iLIKE', "%$buscar%");
+            })
+            ->when($request->sucursal_id, function ($query, $sucursalId) {
+                $query->where('sucursal_id', $sucursalId);
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($limite);
 
         return response()->json($almacenes);
     }
@@ -34,18 +36,20 @@ class AlmacenController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('almacen.crear');
+
         $datos = $request->validate([
-            "nombre" => "required|string|max:255",
-            "codigo" => "nullable|string|max:255",
-            "descripcion" => "nullable|string",
-            "sucursal_id" => "required|integer|exists:sucursals,id",
+            'nombre' => 'required|string|max:255',
+            'codigo' => 'nullable|string|max:255',
+            'descripcion' => 'nullable|string',
+            'sucursal_id' => 'required|integer|exists:sucursals,id',
         ]);
 
         $almacen = Almacen::create($datos);
 
         return response()->json([
-            "mensaje" => "Almacen registrado",
-            "almacen" => $almacen->load("sucursal"),
+            'mensaje' => 'Almacen registrado',
+            'almacen' => $almacen->load('sucursal'),
         ], 201);
     }
 
@@ -54,7 +58,9 @@ class AlmacenController extends Controller
      */
     public function show(string $id)
     {
-        $almacen = Almacen::with(["sucursal", "productos"])->findOrFail($id);
+        $this->authorize('almacen.ver');
+
+        $almacen = Almacen::with(['sucursal', 'productos'])->findOrFail($id);
 
         return response()->json($almacen);
     }
@@ -64,20 +70,22 @@ class AlmacenController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('almacen.editar');
+
         $almacen = Almacen::findOrFail($id);
 
         $datos = $request->validate([
-            "nombre" => "required|string|max:255",
-            "codigo" => "nullable|string|max:255",
-            "descripcion" => "nullable|string",
-            "sucursal_id" => "required|integer|exists:sucursals,id",
+            'nombre' => 'required|string|max:255',
+            'codigo' => 'nullable|string|max:255',
+            'descripcion' => 'nullable|string',
+            'sucursal_id' => 'required|integer|exists:sucursals,id',
         ]);
 
         $almacen->update($datos);
 
         return response()->json([
-            "mensaje" => "Almacen actualizado",
-            "almacen" => $almacen->load("sucursal"),
+            'mensaje' => 'Almacen actualizado',
+            'almacen' => $almacen->load('sucursal'),
         ]);
     }
 
@@ -86,16 +94,18 @@ class AlmacenController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('almacen.eliminar');
+
         $almacen = Almacen::findOrFail($id);
 
         if ($almacen->productos()->exists()) {
             return response()->json([
-                "mensaje" => "No se puede eliminar el almacen porque tiene productos asociados",
+                'mensaje' => 'No se puede eliminar el almacen porque tiene productos asociados',
             ], 409);
         }
 
         $almacen->delete();
 
-        return response()->json(["mensaje" => "Almacen eliminado"]);
+        return response()->json(['mensaje' => 'Almacen eliminado']);
     }
 }

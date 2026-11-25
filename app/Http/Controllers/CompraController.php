@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Compra;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class CompraController extends Controller
 {
@@ -14,27 +14,29 @@ class CompraController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('compra.ver');
+
         $limite = $request->limit ?? 10;
         $buscar = $request->search;
         $desde = $request->desde;
         $hasta = $request->hasta;
 
-        $compras = Compra::with(['user', 'proveedor','almacen_producto_compra'])
+        $compras = Compra::with(['user', 'proveedor', 'almacen_producto_compra'])
             ->where(function ($query) use ($buscar) {
-                $query->where("codigo", "iLIKE", "%$buscar%")
-                      ->orWhereHas("proveedor", function ($q) use ($buscar) {
-                          $q->where("razon_social", "iLIKE", "%$buscar%")
-                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
-                      })
-                      ->orWhereHas("user", function ($q) use ($buscar) {
-                          $q->where("name", "iLIKE", "%$buscar%");
-                      });
+                $query->where('codigo', 'iLIKE', "%$buscar%")
+                    ->orWhereHas('proveedor', function ($q) use ($buscar) {
+                        $q->where('razon_social', 'iLIKE', "%$buscar%")
+                            ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%");
+                    })
+                    ->orWhereHas('user', function ($q) use ($buscar) {
+                        $q->where('name', 'iLIKE', "%$buscar%");
+                    });
             })
             ->when($desde, function ($query, $desde) {
-                $query->whereDate("fecha", ">=", $desde);
+                $query->whereDate('fecha', '>=', $desde);
             })
             ->when($hasta, function ($query, $hasta) {
-                $query->whereDate("fecha", "<=", $hasta);
+                $query->whereDate('fecha', '<=', $hasta);
             })
             ->orderBy('id', 'DESC')
             ->paginate($limite);
@@ -47,33 +49,35 @@ class CompraController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('compra.crear');
+
         $request->validate([
             // "codigo" => "nullable",
             // "fecha" => "required",
-            "proveedor_id" => "required|exists:proveedors,id",
+            'proveedor_id' => 'required|exists:proveedors,id',
             // "user_id" =>"required",
-            "descuento_total" => "nullable",
-            "detalle"=> "nullable",
-            "observaciones"=> "nullable",
-            "movimientos.*.almacen_id" => "required|exists:almacens,id",
-            "movimientos.*.producto_id" => "required|exists:productos,id",
-            "movimientos.*.cantidad" => "required|integer|min:1",
-            "movimientos.*.precio_unitario_compra" => "required|numeric"
+            'descuento_total' => 'nullable',
+            'detalle' => 'nullable',
+            'observaciones' => 'nullable',
+            'movimientos.*.almacen_id' => 'required|exists:almacens,id',
+            'movimientos.*.producto_id' => 'required|exists:productos,id',
+            'movimientos.*.cantidad' => 'required|integer|min:1',
+            'movimientos.*.precio_unitario_compra' => 'required|numeric',
 
         ]);
 
         try {
             // Transacciones
-            DB::beginTransaction();            
+            DB::beginTransaction();
             // Creación de una Nota de Compra en la BD
-            $compra = new Compra();
-            $compra->codigo = "";
+            $compra = new Compra;
+            $compra->codigo = '';
             $compra->fecha = date('Y-m-d H:i:s');
             $compra->detalle = $request->detalle;
             $compra->observaciones = $request->observaciones;
             $compra->user_id = $request->user()->id;
             $compra->proveedor_id = $request->proveedor_id;
-            $compra->estado = "EN PROCESO";
+            $compra->estado = 'EN PROCESO';
             $compra->save();
 
             $compra->codigo = 'COMP-'.str_pad($compra->id, 6, '0', STR_PAD_LEFT);
@@ -86,47 +90,49 @@ class CompraController extends Controller
                     'almacen_id' => $mov['almacen_id'],
                     'cantidad' => $mov['cantidad'],
                     'precio_unitario_compra' => $mov['precio_unitario_compra'],
-                    'observaciones' => $mov['observaciones']
+                    'observaciones' => $mov['observaciones'],
                 ]);
 
                 // actualizamos el stock
                 $pivot = DB::table('almacen_producto')
-                                ->where('almacen_id', $mov['almacen_id'])
-                                ->where('producto_id', $mov['producto_id'])
-                                ->first();
-                if(!$pivot){
+                    ->where('almacen_id', $mov['almacen_id'])
+                    ->where('producto_id', $mov['producto_id'])
+                    ->first();
+                if (! $pivot) {
                     DB::table('almacen_producto')->insert([
-                        "almacen_id" => $mov['almacen_id'],
-                        "producto_id" => $mov['producto_id'],
-                        "cantidad_actual" => $mov['cantidad'],
-                        "fecha_actualizacion" => date('Y-m-d H:i:s')
+                        'almacen_id' => $mov['almacen_id'],
+                        'producto_id' => $mov['producto_id'],
+                        'cantidad_actual' => $mov['cantidad'],
+                        'fecha_actualizacion' => date('Y-m-d H:i:s'),
                     ]);
-                }else{
+                } else {
                     $nuevaCantidad = $pivot->cantidad_actual;
 
-                    $nuevaCantidad = $nuevaCantidad +  $mov['cantidad'];
+                    $nuevaCantidad = $nuevaCantidad + $mov['cantidad'];
                     DB::table('almacen_producto')
-                                ->where('almacen_id', $mov['almacen_id'])
-                                ->where('producto_id', $mov['producto_id'])
-                                ->update([
-                                    "cantidad_actual" => $nuevaCantidad,
-                                    "fecha_actualizacion" => date('Y-m-d H:i:s')
-                                ]);
+                        ->where('almacen_id', $mov['almacen_id'])
+                        ->where('producto_id', $mov['producto_id'])
+                        ->update([
+                            'cantidad_actual' => $nuevaCantidad,
+                            'fecha_actualizacion' => date('Y-m-d H:i:s'),
+                        ]);
                 }
             }
             // Registra todo en la BD
             // Registrar nota compra
-            $compra->estado = "COMPLETADO";
+            $compra->estado = 'COMPLETADO';
             $compra->update();
 
             DB::commit();
-            return response()->json(["mensaje" => "Nota Creada correctamente"], 201);
+
+            return response()->json(['mensaje' => 'Nota Creada correctamente'], 201);
             // Todo Bien
         } catch (\Exception $e) {
-            //revierte todo;
+            // revierte todo;
             // Si existe un error (Revertir todo)
             DB::rollBack();
-            return response()->json(["mensaje" => "Error al registrar la Nota de Compra", "error"=> $e->getMessage()], 500);
+
+            return response()->json(['mensaje' => 'Error al registrar la Nota de Compra', 'error' => $e->getMessage()], 500);
         }
 
     }
@@ -136,6 +142,8 @@ class CompraController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorize('compra.ver');
+
         //
     }
 
@@ -144,6 +152,8 @@ class CompraController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorize('compra.editar');
+
         //
     }
 
@@ -152,50 +162,57 @@ class CompraController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorize('compra.eliminar');
+
         //
     }
 
-    public function generarReciboPDF($id){
+    public function generarReciboPDF($id)
+    {
+        $this->authorize('compra.ver');
 
         $data = Compra::with(['user', 'proveedor', 'almacen_producto_compra'])->find($id);
 
-        $pdf = Pdf::loadView('pdf.recibo_compra', ["data" => $data]);
+        $pdf = Pdf::loadView('pdf.recibo_compra', ['data' => $data]);
+
         return $pdf->download("$data->codigo-recibo.pdf");
     }
 
     public function exportarPDF(Request $request)
     {
+        $this->authorize('compra.ver');
+
         $buscar = $request->search;
         $desde = $request->desde;
         $hasta = $request->hasta;
 
         $compras = Compra::with(['user', 'proveedor', 'almacen_producto_compra'])
             ->where(function ($query) use ($buscar) {
-                $query->where("codigo", "iLIKE", "%$buscar%")
-                      ->orWhereHas("proveedor", function ($q) use ($buscar) {
-                          $q->where("razon_social", "iLIKE", "%$buscar%")
-                            ->orWhere("nro_identificacion", "iLIKE", "%$buscar%");
-                      })
-                      ->orWhereHas("user", function ($q) use ($buscar) {
-                          $q->where("name", "iLIKE", "%$buscar%");
-                      });
+                $query->where('codigo', 'iLIKE', "%$buscar%")
+                    ->orWhereHas('proveedor', function ($q) use ($buscar) {
+                        $q->where('razon_social', 'iLIKE', "%$buscar%")
+                            ->orWhere('nro_identificacion', 'iLIKE', "%$buscar%");
+                    })
+                    ->orWhereHas('user', function ($q) use ($buscar) {
+                        $q->where('name', 'iLIKE', "%$buscar%");
+                    });
             })
             ->when($desde, function ($query, $desde) {
-                $query->whereDate("fecha", ">=", $desde);
+                $query->whereDate('fecha', '>=', $desde);
             })
             ->when($hasta, function ($query, $hasta) {
-                $query->whereDate("fecha", "<=", $hasta);
+                $query->whereDate('fecha', '<=', $hasta);
             })
             ->orderBy('id', 'DESC')
             ->get();
 
         $pdf = Pdf::loadView('pdf.reporte_compras', [
-            "compras" => $compras,
-            "buscar" => $buscar,
-            "desde" => $desde,
-            "hasta" => $hasta,
+            'compras' => $compras,
+            'buscar' => $buscar,
+            'desde' => $desde,
+            'hasta' => $hasta,
         ]);
 
-        return $pdf->download("reporte-compras.pdf");
+        return $pdf->download('reporte-compras.pdf');
     }
 }
